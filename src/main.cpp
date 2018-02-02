@@ -2,11 +2,6 @@
 #include <Wtv020sd16p.h>
 #include <MobaTools.h>
 
-int resetPin = 2;  // The pin number of the reset pin.
-int clockPin = 3;  // The pin number of the clock pin.
-int dataPin = 4;  // The pin number of the data pin.
-int busyPin = 5;  // The pin number of the busy pin.
-
 /*
 Create an instance of the Wtv020sd16p class.
 1st parameter: Reset pin number.
@@ -14,21 +9,29 @@ Create an instance of the Wtv020sd16p class.
 3rd parameter: Data pin number.
 4th parameter: Busy pin number.
 */
+
+int resetPin = 2;  // The pin number of the reset pin.
+int clockPin = 3;  // The pin number of the clock pin.
+int dataPin = 4;   // The pin number of the data pin.
+int busyPin = 5;   // The pin number of the busy pin.
+
 Wtv020sd16p wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
 
 #define ANZAHL  8   // Anzahl der Blinker
 
-const byte blinkerP[ANZAHL] =  {6,7,8,9,10,11,12,13};           // Pins für die Led's
-const int  blinkOn[ANZAHL]  =  {211,222,233,241,214,226,227,217};   // Einschaltzeit der Blinklampen (ms)
-const int  blinkOff[ANZAHL] =  {214,229,227,220,218,222,219,213};   // Pausezeit ( in ms)
+const byte blinkerP[ANZAHL] =  {6,7,8,9,10,11,12,13};               // Pins für die Led's
+const int  blinkOn[ANZAHL]  =  {100,106,102,103,108,101,105,107};   // Ein der Blinklampen (ms) 2Hz Tastverhätnis 1:4 
+const int  blinkOff[ANZAHL] =  {400,424,408,412,432,404,420,428};   // Pausezeit (ms) 
+const int  blinkUp[ANZAHL]  =  {0,260,40,200,80,120,180,290};   // Einschaltpause (ms) 
 
-EggTimer Blinkzeit[ANZAHL]; // Die Zeitgeber lassen sich auch wie ein Array definieren
+
+EggTimer Blinkzeit[ANZAHL];     // Die Zeitgeber lassen sich auch wie ein Array definieren
 EggTimer Anfang;
 EggTimer Ablauf;
 
-int Ro = 1;   //Ro 1 oder Ro 3
+int Ro = 1;     //Ro 1 oder Ro 3
 
-byte i;     // Zählvariable
+byte i;         // Zählvariable
 
 
 
@@ -43,15 +46,16 @@ void setup() {
     Ablauf.setTime(20000);
     delay(10000);
     for ( i=0; i<ANZAHL; i++ ) {
-        Blinkzeit[i].setTime( blinkOff[i] * 2 );
+        Blinkzeit[i].setTime( blinkUp[i] * 2 );
     }
 }
 
 void loop() {
-    // -------- Verwalten der 4 Blinker in einer Schleife ------------------
+    // -------- Verwalten aller Blinker in einer Schleife ------------------
     if ( Anfang.running() == false) {
-        //Plays synchronously an audio file. Busy pin is used for this method.
+        
         wtv020sd16p.asyncPlayVoice(Ro);
+        
         Anfang.setTime(300000);
     }
     for ( i=0; i<ANZAHL; i++ ){
@@ -60,10 +64,10 @@ void loop() {
             // Zeit neu aufziehen
             if ( digitalRead( blinkerP[i] ) == HIGH ) {
                 digitalWrite( blinkerP[i], LOW );
-                Blinkzeit[i].setTime( blinkOff[i] );
+                Blinkzeit[i].setTime( blinkOn[i] );
             } else {
                 digitalWrite( blinkerP[i], HIGH );
-                Blinkzeit[i].setTime( blinkOn[i] );
+                Blinkzeit[i].setTime( blinkOff[i] );
             }
         }
     } // Ende for-Schleife
@@ -77,7 +81,7 @@ void loop() {
             Ablauf.setTime(20000);
             Anfang.setTime(20);
             for ( i=0; i<ANZAHL; i++ ) {
-                Blinkzeit[i].setTime( blinkOff[i] * 2 );
+                Blinkzeit[i].setTime( blinkUp[i] * 2 );
             }
         } else {
             while(1);
