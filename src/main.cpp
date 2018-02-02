@@ -26,6 +26,7 @@ EggTimer Blinkzeit[ANZAHL]; // Die Zeitgeber lassen sich auch wie ein Array defi
 EggTimer Anfang;
 EggTimer Ablauf;
 
+int Ro = 1;   //Ro 1 oder Ro 3
 
 byte i;     // Zählvariable
 
@@ -38,16 +39,21 @@ void setup() {
         pinMode(blinkerP[i], OUTPUT); 
         digitalWrite(blinkerP[i], HIGH); 
     }
-    Anfang.setTime(2000);
-    Ablauf.setTime(40000);
+    Anfang.setTime(20);
+    Ablauf.setTime(20000);
     delay(10000);
     for ( i=0; i<ANZAHL; i++ ) {
-        Blinkzeit[i].setTime( blinkOff[i] );
+        Blinkzeit[i].setTime( blinkOff[i] * 2 );
     }
 }
 
 void loop() {
     // -------- Verwalten der 4 Blinker in einer Schleife ------------------
+    if ( Anfang.running() == false) {
+        //Plays synchronously an audio file. Busy pin is used for this method.
+        wtv020sd16p.asyncPlayVoice(Ro);
+        Anfang.setTime(300000);
+    }
     for ( i=0; i<ANZAHL; i++ ){
         if ( Blinkzeit[i].running()== false ) {
             // Blinkzeit abgelaufen, Ausgang toggeln und
@@ -61,16 +67,21 @@ void loop() {
             }
         }
     } // Ende for-Schleife
-    if ( Anfang.running() == false) {
-        //Plays synchronously an audio file. Busy pin is used for this method.
-        wtv020sd16p.asyncPlayVoice(0);
-        Anfang.setTime(300000);
-    }
     if ( Ablauf.running() == false) {
         for ( i=0; i<ANZAHL; i++ ) {
             digitalWrite(blinkerP[i], HIGH); 
         }
-        delay(1000000);
+        if ( Ro == 1) {
+            delay(2000);
+            Ro = 3;
+            Ablauf.setTime(20000);
+            Anfang.setTime(20);
+            for ( i=0; i<ANZAHL; i++ ) {
+                Blinkzeit[i].setTime( blinkOff[i] * 2 );
+            }
+        } else {
+            while(1);
+        }
     }
  }
 
